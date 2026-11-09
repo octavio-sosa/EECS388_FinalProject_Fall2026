@@ -172,7 +172,7 @@ return;
 
 void uart_init() {
     /*  Task 1.1 - Update baud rate with ubrr value. Initialize ubrr to calculated value */
-	uint16_t ubrr;
+	uint16_t ubrr = 16;
 	UBRR0H = (ubrr >> 8);
     UBRR0L = ubrr;
 
@@ -180,6 +180,7 @@ void uart_init() {
 				  modify U2X0 only to set it in UCSR0A for double speed mode */
 	//UCSR0A |= ???
 
+	UCSR0A |= (1 << U2X0);
     UCSR0B = (1 << RXEN0) | (1 << TXEN0 );   // Enable transmitter/receiver
 	UCSR0C = (1 << UCSZ01) | (1 << UCSZ00); // 8-bit data, leaves parity/stop/mode to defaults (no parity, 1 stop, async)
 }

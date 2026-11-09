@@ -36,7 +36,9 @@ uint16_t dist = 0;              /* LIDAR distance data is 16 bits. */
 
 ser_printline("Setup completed.");
 ser_write( '\n' );
-
+    //gpio_write(GPIO_11, ON);
+    //gpio_write(GPIO_12, ON);
+    //gpio_write(GPIO_13, ON);
 while( 1 )
     { 
     /* 
@@ -62,8 +64,45 @@ while( 1 )
 
 			- Send the distance to Arduino2
         */
+        uint8_t dist_L = ser_read();
+        uint8_t dist_H = ser_read();
+        uint16_t dist = static_cast<uint16_t>(dist_L) | (static_cast<uint16_t>(uint16_t(dist_H) << 8));
+        uint8_t strength_L = ser_read();
+        int8_t strength_H = ser_read();
+        uint8_t rsvd = ser_read();
+        uint8_t quality = ser_read();
+        uint8_t checksum = ser_read();
+        uint16_t min = 30;
+        uint16_t threshold = 75;
+        uint16_t max = 1200;
+
+        uint16_t sum = 'Y' + 'Y' + dist_L + dist_H + strength_L + strength_H + rsvd + quality;
+        uint16_t calculated_checksum = sum & (0x00FF);
+
+        if (calculated_checksum == checksum) {
+            ser_printline("Checksum matched!\n");
+        } else {
+            ser_printline("Checksum NOT matched!\n");
+        }
+
+        if (dist == min) {
+            gpio_write(GPIO_11, OFF);
+            gpio_write(GPIO_12, OFF);
+            gpio_write(GPIO_13, OFF);
+        } else if (dist < threshold){
+            gpio_write(GPIO_11, OFF);
+            gpio_write(GPIO_12, OFF);
+            gpio_write(GPIO_13, ON);
+        } else if (dist < max) {
+            gpio_write(GPIO_11, OFF);
+            gpio_write(GPIO_12, ON);
+            gpio_write(GPIO_13, OFF);
+        } else {
+            gpio_write(GPIO_11, ON);
+            gpio_write(GPIO_12, OFF);
+            gpio_write(GPIO_13, OFF);
+        }
         }
     }
-
-return;
+    return;
 }
