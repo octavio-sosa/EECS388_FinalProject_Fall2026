@@ -17,6 +17,10 @@
 #define SERVO_PERIOD    (20000)   /* 20000 us (20ms) */
 #define MIN_ANGLE       (0)       /* degrees */
 #define MAX_ANGLE       (180)     /* degrees */
+#define SAFE_DIST (201)
+#define CLOSE_DIST (100)
+#define VERY_CLOSE_DIST (60) 
+#define TOO_CLOSE_DIST (0)
 
 
 /******************************************************************************
@@ -119,9 +123,23 @@ for (int i = 0; i < 10; i++)
   // Remember to comment out the if-else statement above!
   // steering(angle);
   }
-  char LED = ser_read();
-  if (LED == 'G'){
+  char dist = ser_read();
+  if (dist >= SAFE_DIST) {
+    gpio_write(GPIO_13, OFF);
+    gpio_write(GPIO_12, ON);
+    gpio_write(GPIO_11, OFF);
+  } else if (dist > CLOSE_DIST) {
+    gpio_write(GPIO_13, ON);
+    gpio_write(GPIO_12, ON);
+    gpio_write(GPIO_11, OFF);
+  } else if (dist > VERY_CLOSE_DIST){
+    gpio_write(GPIO_13, ON);
+    gpio_write(GPIO_12, OFF);
+    gpio_write(GPIO_11, OFF);
+  } else if (dist <= TOO_CLOSE_DIST){
+    gpio_write(GPIO_13, ON);
+    gpio_write(GPIO_12, ON);
     gpio_write(GPIO_11, ON);
-    
-  };
+  }
+  ;
 }
