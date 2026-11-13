@@ -84,7 +84,7 @@ while( 1 )
             ser_write('G');
         } else {
             //ser_printline("Checksum NOT matched!\n");
-            ser_write('Z');
+            ser_write('Z'); //failed checksum
         }
 
         if (dist == min) {

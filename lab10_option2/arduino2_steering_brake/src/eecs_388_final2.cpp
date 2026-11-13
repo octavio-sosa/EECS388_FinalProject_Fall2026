@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "eecs_388_lib.h"
+#include "eecs_388_lib2.h"
 
 /******************************************************************************
  *   Constant definitions
@@ -119,4 +119,6 @@ for (int i = 0; i < 10; i++)
   // Remember to comment out the if-else statement above!
   // steering(angle);
   }
+  char LED = ser_read();
+  ser_write(LED);
 }

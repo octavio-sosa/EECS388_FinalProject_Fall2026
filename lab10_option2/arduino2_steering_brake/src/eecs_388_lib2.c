@@ -6,7 +6,7 @@
 #include <util/twi.h>
 #include <stdint.h>
 
-#include "eecs_388_lib.h"
+#include "eecs_388_lib2.h"
 #include "wiring_private.h"
 #include "pins_arduino.h"
 
