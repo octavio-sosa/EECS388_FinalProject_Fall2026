@@ -74,11 +74,15 @@ while( 1 )
         uint8_t checksum = ser_read();
         uint16_t min = 30;
         uint16_t threshold = 75;
-        uint16_t max = 1200;
+        uint16_t max = 201;
 
         uint16_t sum = 'Y' + 'Y' + dist_L + dist_H + strength_L + strength_H + rsvd + quality;
         uint16_t calculated_checksum = sum & (0x00FF);
-
+        dist = (uint8_t)constrain(dist, 0, 201);
+        char buffer[2];
+        sprintf(buffer, "%c", dist);
+        ser_printline(buffer);
+        /*
         if (calculated_checksum == checksum) {
             //ser_printline("Checksum matched!\n");
             ser_write('G');
@@ -86,25 +90,21 @@ while( 1 )
             //ser_printline("Checksum NOT matched!\n");
             ser_write('Z'); //failed checksum
         }
+        */
+        }
 
-        if (dist == min) {
-            gpio_write(GPIO_11, OFF);
-            gpio_write(GPIO_12, OFF);
-            gpio_write(GPIO_13, OFF);
-        } else if (dist < threshold){
-            gpio_write(GPIO_11, OFF);
-            gpio_write(GPIO_12, OFF);
-            gpio_write(GPIO_13, ON);
-        } else if (dist < max) {
-            gpio_write(GPIO_11, OFF);
-            gpio_write(GPIO_12, ON);
-            gpio_write(GPIO_13, OFF);
-        } else {
-            gpio_write(GPIO_11, ON);
-            gpio_write(GPIO_12, OFF);
-            gpio_write(GPIO_13, OFF);
-        }
-        }
+        //uint8_t value = (uint8_t)constrain(dist, 0, 201);
+        /*
+        /*
+        uint8_t value = 150;
+        delay(100);
+    
+        char buffer[10];
+        sprintf(buffer, "%u", value);
+
+        ser_printline(buffer);
+        */
+
     }
     return;
 }

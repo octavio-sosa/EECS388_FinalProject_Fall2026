@@ -207,8 +207,8 @@ void ser_printline(const char *str) {
     while (*str) {
         ser_write(*str++); // Send characters one by one
     }
-    ser_write('\n'); // newline character
-    ser_write('\r'); // carriage return
+    //ser_write('\n'); // newline character
+    //ser_write('\r'); // carriage return
 }
 
 char ser_read() {
