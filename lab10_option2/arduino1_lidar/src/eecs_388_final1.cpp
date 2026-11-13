@@ -80,9 +80,11 @@ while( 1 )
         uint16_t calculated_checksum = sum & (0x00FF);
 
         if (calculated_checksum == checksum) {
-            ser_printline("Checksum matched!\n");
+            //ser_printline("Checksum matched!\n");
+            ser_write('G');
         } else {
-            ser_printline("Checksum NOT matched!\n");
+            //ser_printline("Checksum NOT matched!\n");
+            ser_write('Z');
         }
 
         if (dist == min) {
