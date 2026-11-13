@@ -120,5 +120,8 @@ for (int i = 0; i < 10; i++)
   // steering(angle);
   }
   char LED = ser_read();
-  ser_write(LED);
+  if (LED == 'G'){
+    gpio_write(GPIO_11, ON);
+    
+  };
 }
