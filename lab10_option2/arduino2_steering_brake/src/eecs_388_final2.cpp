@@ -21,6 +21,10 @@
 #define CLOSE_DIST (100)
 #define VERY_CLOSE_DIST (60) 
 #define TOO_CLOSE_DIST (0)
+  uint8_t distmax = 201;
+  uint8_t distmid = 100;
+  uint8_t distmin = 60;
+  uint8_t dist;
 
 
 /******************************************************************************
@@ -122,27 +126,33 @@ for (int i = 0; i < 10; i++)
   // Uncomment the line below to see the actual angles on the servo.
   // Remember to comment out the if-else statement above!
   // steering(angle);
-  uint8_t dist = 0;
   if (UCSR0A & (1 << RXC0)) {
-      uint8_t dist = UDR0;
+      dist = UDR0;
 
       char buffer[20];
-      sprintf(buffer, "Distance: %u", (unsigned int)dist);
+      sprintf(buffer, "DDDistance: %u", (unsigned int)dist);
       ser_printline(buffer);
+  
+
+
   }
-  if (dist >= SAFE_DIST) {
-    gpio_write(GPIO_13, OFF);
-    gpio_write(GPIO_12, ON);
-    gpio_write(GPIO_11, OFF);
-  } else if (dist > CLOSE_DIST) {
-    gpio_write(GPIO_13, OFF);
-    gpio_write(GPIO_12, OFF);
-    gpio_write(GPIO_11, ON);
-  } else if (dist > VERY_CLOSE_DIST){
+  if (dist >= distmax) {
+    //ser_printline("A");
     gpio_write(GPIO_13, ON);
     gpio_write(GPIO_12, OFF);
     gpio_write(GPIO_11, OFF);
-  } else if (dist <= TOO_CLOSE_DIST){
+  } else if (dist > distmid) {
+    //ser_printline("B");
+    gpio_write(GPIO_13, ON);
+    gpio_write(GPIO_12, OFF);
+    gpio_write(GPIO_11, ON);
+  } else if (dist > distmin){
+    //ser_printline("C");
+    gpio_write(GPIO_13, OFF);
+    gpio_write(GPIO_12, OFF);
+    gpio_write(GPIO_11, ON);
+  } else {
+    //ser_printline("D");
     gpio_write(GPIO_13, ON);
     gpio_write(GPIO_12, ON);
     gpio_write(GPIO_11, ON);
