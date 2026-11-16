@@ -72,16 +72,18 @@ while( 1 )
         uint8_t rsvd = ser_read();
         uint8_t quality = ser_read();
         uint8_t checksum = ser_read();
-        uint16_t min = 30;
-        uint16_t threshold = 75;
-        uint16_t max = 201;
+        //uint16_t min = 30;
+        //uint16_t threshold = 75;
+        //uint16_t max = 201;
 
-        uint16_t sum = 'Y' + 'Y' + dist_L + dist_H + strength_L + strength_H + rsvd + quality;
-        uint16_t calculated_checksum = sum & (0x00FF);
-        dist = (uint8_t)constrain(dist, 0, 201);
-        char buffer[2];
-        sprintf(buffer, "%c", dist);
-        ser_printline(buffer);
+        //uint16_t sum = 'Y' + 'Y' + dist_L + dist_H + strength_L + strength_H + rsvd + quality;
+        //uint16_t calculated_checksum = sum & (0x00FF);
+        uint8_t value = constrain(dist, 60, 201);
+
+        while (!(UCSR0A & (1 << UDRE0)));
+
+        UDR0 = value;   
+
         /*
         if (calculated_checksum == checksum) {
             //ser_printline("Checksum matched!\n");
