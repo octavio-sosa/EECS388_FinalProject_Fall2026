@@ -12,6 +12,13 @@
  *******************************************************************************/
 
 /*ServoMotor constants*/
+
+
+int angle_values[] = {10, 25, 75, 45, 100, 40, 125, 15, 150, 50, 170};
+
+uint8_t angleIndex = 0;
+
+
 #define SERVO_PULSE_MAX (2400)    /* 2400 us */
 #define SERVO_PULSE_MIN (544)     /* 544 us */
 #define SERVO_PERIOD    (20000)   /* 20000 us (20ms) */
@@ -27,6 +34,9 @@
 
   volatile uint8_t dist = 0;
 
+volatile uint8_t servoCounter = 0;
+volatile bool updateServo = false;
+
   ISR(USART_RX_vect) {
     dist = UDR0;
 }
@@ -36,6 +46,14 @@ volatile bool ledState = false;
 
 ISR(TIMER1_COMPA_vect) {
     ledState = !ledState;
+
+
+    servoCounter++;
+
+    if (servoCounter >= 30) {
+        servoCounter = 0;
+        updateServo = true;
+    }
 }
 
 /******************************************************************************
@@ -110,7 +128,29 @@ void gear_change(void){
  *          I2C is initialized for communication with BMP180
  *          calib_data is filled with calibration data from BMP180
  *******************************************************************************/
-void setup() 
+
+
+static void servo (int gpio, int angle)
+{
+
+uint32_t on_pulse_width = (uint32_t(angle)*(SERVO_PULSE_MAX-SERVO_PULSE_MIN))/MAX_ANGLE+SERVO_PULSE_MIN;
+uint32_t off_pulse_width = SERVO_PERIOD-on_pulse_width;
+gpio_write(gpio,ON);
+delay_us(on_pulse_width);
+gpio_write(gpio,OFF);
+delay_ms(off_pulse_width/1000);
+delay_us(off_pulse_width % 1000);
+
+
+return;
+}
+
+
+
+
+
+
+ void setup() 
 {
 uart_init();                 // Initialize UART first
 
@@ -159,46 +199,31 @@ ser_printf("System Initialized");
  *******************************************************************************/
 void loop() 
 {
-// Task-4: 
-// Setup simulated code for the angles from the lab sheet
-int angle;
+  gear_change();
 
-// Task-1&2:
-// Receive data from arudino1 for the distance and setup the LEDs
-auto_brake();
+  if (updateServo) {
+      updateServo = false;
 
-gear_change(); // change gear by button
-//  Task-4:
-for (int i = 0; i < 10; i++)
-  {
-  // Here, we set the angle to 180 if the prediction from the DNN is a positive angle
-  // and 0 if the prediction is a negative angle.
-  // This is so that it is easier to see the movement of the servo.
-  // You are welcome to pass the angle values directly to the steering function.
-  // If the servo function is written correctly, it should still work,
-  // only the movements of the servo will be more subtle
-  if( angle > 0 )
-    {
-    steering(180);
-    }
-  else 
-    {
-    steering(0);
-    }
-           
-  // Uncomment the line below to see the actual angles on the servo.
-  // Remember to comment out the if-else statement above!
-  // steering(angle);
+      angleIndex++;
 
-
-  /*
-  char buffer[20];
-  sprintf(buffer, "Distance: %u", (unsigned int)dist);
-  ser_printline(buffer);
-  */
-
-
+      if (angleIndex >= 11) {
+          angleIndex = 0;
+      }
   }
+
+/*
+char buffer[20];
+sprintf(buffer, "Angle: %d", angle_values[angleIndex]);
+ser_printline(buffer);
+*/
+
+servo(GPIO_6, angle_values[angleIndex]);
+
+
+
+
+
+
   if (dist >= distmax) {
     //ser_printline("A");
     gpio_write(GPIO_13, ON);
@@ -216,6 +241,5 @@ for (int i = 0; i < 10; i++)
     gpio_write(GPIO_11, ledState ? ON : OFF);
     gpio_write(GPIO_13, OFF);
   }
-  ;
 }
 
