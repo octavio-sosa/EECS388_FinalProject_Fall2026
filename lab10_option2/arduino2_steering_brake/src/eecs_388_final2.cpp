@@ -72,6 +72,33 @@ static void steering(int pos)
     // Your code goes here (Use Lab 05 for reference)
     // Check the project document to understand the task
 }
+void gear_change_setup(void){
+  DDRD &= ~(1 << DDD2); // set gpio pin 2 as input
+  PORTD |= (1 << PORTD2); // enable internal pull-up resistor
+}
+
+void gear_change(void){
+
+  static bool drive_gear = false;
+  static bool previous_pressed = false;
+
+  bool currently_pressed = !(PIND & (1 << PIND2));
+
+  if (currently_pressed && !previous_pressed){
+    if (drive_gear){
+      drive_gear = false;
+      ser_write('P');
+      ser_write('\n');
+    } else {
+      drive_gear = true;
+      ser_write('d');
+      ser_write('\n');
+    }
+  }
+
+  previous_pressed = currently_pressed;
+}
+
 
 /******************************************************************************
  *   Function: setup() - Initializes the Arduino System
@@ -113,6 +140,9 @@ gpio_mode(GPIO_13, GPIO_OUTPUT); //RED
 gpio_mode(GPIO_12, GPIO_OUTPUT); //GREEN
 gpio_mode(GPIO_11, GPIO_OUTPUT); //BLUE
 
+//setup gear change button
+gear_change_setup();
+
 //Setup GPIO_6 for PWM output
 gpio_mode(GPIO_6, GPIO_OUTPUT);
 
@@ -137,6 +167,7 @@ int angle;
 // Receive data from arudino1 for the distance and setup the LEDs
 auto_brake();
 
+gear_change(); // change gear by button
 //  Task-4:
 for (int i = 0; i < 10; i++)
   {
@@ -160,10 +191,11 @@ for (int i = 0; i < 10; i++)
   // steering(angle);
 
 
-
+  /*
   char buffer[20];
   sprintf(buffer, "Distance: %u", (unsigned int)dist);
   ser_printline(buffer);
+  */
 
 
   }
