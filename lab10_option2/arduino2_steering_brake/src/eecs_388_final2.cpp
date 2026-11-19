@@ -219,11 +219,6 @@ ser_printline(buffer);
 
 servo(GPIO_6, angle_values[angleIndex]);
 
-
-
-
-
-
   if (dist >= distmax) {
     //ser_printline("A");
     gpio_write(GPIO_13, ON);
