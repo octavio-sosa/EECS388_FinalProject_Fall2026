@@ -33,7 +33,7 @@ return;
 void loop() 
 {
 uint16_t dist = 0;              /* LIDAR distance data is 16 bits. */
-
+uint32_t lastSend = 0;
 ser_printline("Setup completed.");
 ser_write( '\n' );
     //gpio_write(GPIO_11, ON);
@@ -78,12 +78,17 @@ while( 1 )
 
         //uint16_t sum = 'Y' + 'Y' + dist_L + dist_H + strength_L + strength_H + rsvd + quality;
         //uint16_t calculated_checksum = sum & (0x00FF);
-        uint8_t value = constrain(dist, 60, 201);
 
-        while (!(UCSR0A & (1 << UDRE0)));
 
-        UDR0 = value;   
+        
+        if (millis() - lastSend >= 100) {
+            lastSend = millis();
 
+            uint8_t value = constrain(dist, 60, 201);
+
+            while (!(UCSR0A & (1 << UDRE0)));
+            UDR0 = value;
+        }
         /*
         if (calculated_checksum == checksum) {
             //ser_printline("Checksum matched!\n");
