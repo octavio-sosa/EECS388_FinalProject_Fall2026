@@ -21,7 +21,22 @@
 #define CLOSE_DIST (100)
 #define VERY_CLOSE_DIST (60) 
 #define TOO_CLOSE_DIST (0)
+  uint8_t distmax = 201;
+  uint8_t distmid = 100;
+  uint8_t distmin = 60;
 
+  volatile uint8_t dist = 0;
+
+  ISR(USART_RX_vect) {
+    dist = UDR0;
+}
+
+
+volatile bool ledState = false;
+
+ISR(TIMER1_COMPA_vect) {
+    ledState = !ledState;
+}
 
 /******************************************************************************
  *   Local function prototypes
@@ -70,7 +85,28 @@ static void steering(int pos)
  *******************************************************************************/
 void setup() 
 {
-uart_init();     // Initialize UART for serial output
+uart_init();                 // Initialize UART first
+
+UCSR0B |= (1 << RXCIE0);    // Enable receive interrupt
+
+sei();                      // Enable global interrupts
+
+
+cli();  // Temporarily disable interrupts
+
+TCCR1A = 0;
+TCCR1B = 0;
+TCNT1 = 0;
+
+OCR1A = 12499;  // 50 ms at 16 MHz, prescaler 64
+
+TCCR1B |= (1 << WGM12);   // CTC mode
+TCCR1B |= (1 << CS11) | (1 << CS10); // Prescaler 64
+
+TIMSK1 |= (1 << OCIE1A);  // Enable Timer1 compare interrupt
+
+sei();  // Enable global interrupts
+
 
 //Setup Auto-break LEDs for Distance
 gpio_mode(GPIO_13, GPIO_OUTPUT); //RED
@@ -122,24 +158,32 @@ for (int i = 0; i < 10; i++)
   // Uncomment the line below to see the actual angles on the servo.
   // Remember to comment out the if-else statement above!
   // steering(angle);
+
+
+
+  char buffer[20];
+  sprintf(buffer, "Distance: %u", (unsigned int)dist);
+  ser_printline(buffer);
+
+
   }
-  char dist = ser_read();
-  if (dist >= SAFE_DIST) {
-    gpio_write(GPIO_13, OFF);
-    gpio_write(GPIO_12, ON);
-    gpio_write(GPIO_11, OFF);
-  } else if (dist > CLOSE_DIST) {
+  if (dist >= distmax) {
+    //ser_printline("A");
     gpio_write(GPIO_13, ON);
-    gpio_write(GPIO_12, ON);
     gpio_write(GPIO_11, OFF);
-  } else if (dist > VERY_CLOSE_DIST){
+  } else if (dist > distmid) {
+    //ser_printline("B");
     gpio_write(GPIO_13, ON);
-    gpio_write(GPIO_12, OFF);
-    gpio_write(GPIO_11, OFF);
-  } else if (dist <= TOO_CLOSE_DIST){
-    gpio_write(GPIO_13, ON);
-    gpio_write(GPIO_12, ON);
     gpio_write(GPIO_11, ON);
+  } else if (dist > distmin){
+    //ser_printline("C");
+    gpio_write(GPIO_13, OFF);
+    gpio_write(GPIO_11, ON);
+  } else {
+    //ser_printline("D");
+    gpio_write(GPIO_11, ledState ? ON : OFF);
+    gpio_write(GPIO_13, OFF);
   }
   ;
 }
+
