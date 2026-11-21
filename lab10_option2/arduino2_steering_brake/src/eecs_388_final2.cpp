@@ -124,10 +124,18 @@ void gear_display_setup(void){
   gpio_mode(GPIO_10, GPIO_OUTPUT);
   gpio_mode(GPIO_3, GPIO_OUTPUT);
   gpio_mode(GPIO_9, GPIO_OUTPUT);
+
+  //PARK
+  gpio_write(GPIO_8, ON);
+  gpio_write(GPIO_7, OFF);
+  gpio_write(GPIO_5, OFF);
+  gpio_write(GPIO_4, ON);
+  gpio_write(GPIO_10, ON);
+  gpio_write(GPIO_3, ON);
+  gpio_write(GPIO_9, ON);
 }
 
-void gear_change(void){
-
+bool gear_change(void){
   static bool drive_gear = false;
   static bool previous_pressed = false;
 
@@ -139,6 +147,7 @@ void gear_change(void){
   }
 
   previous_pressed = currently_pressed;
+  return drive_gear;
 }
 
 
@@ -217,7 +226,8 @@ ser_printf("System Initialized");
  *******************************************************************************/
 void loop() 
 {
-  gear_change();
+  static bool drive_gear;
+  drive_gear = gear_change();
 
   if (updateServo) {
       updateServo = false;
@@ -235,9 +245,11 @@ sprintf(buffer, "Angle: %d", angle_values[angleIndex]);
 ser_printline(buffer);
 */
 
-servo(GPIO_6, angle_values[angleIndex]);
+  if(drive_gear){
+    servo(GPIO_6, angle_values[angleIndex]);
+  }
 
-  if (dist >= distmax) {
+  if (dist >= distmax || !drive_gear) {
     //ser_printline("A");
     gpio_write(GPIO_13, ON);
     gpio_write(GPIO_11, OFF);
