@@ -13,11 +13,9 @@
 
 /*ServoMotor constants*/
 
-
 int angle_values[] = {10, 25, 75, 45, 100, 40, 125, 15, 150, 50, 170};
 
 uint8_t angleIndex = 0;
-
 
 #define SERVO_PULSE_MAX (2400)    /* 2400 us */
 #define SERVO_PULSE_MIN (544)     /* 544 us */
@@ -41,12 +39,10 @@ volatile bool updateServo = false;
     dist = UDR0;
 }
 
-
 volatile bool ledState = false;
 
 ISR(TIMER1_COMPA_vect) {
     ledState = !ledState;
-
 
     servoCounter++;
 
@@ -90,9 +86,44 @@ static void steering(int pos)
     // Your code goes here (Use Lab 05 for reference)
     // Check the project document to understand the task
 }
+
+void display_gear(bool drive_gear){
+  if (drive_gear){
+    ser_write('d');
+    gpio_write(GPIO_8, ON);
+    gpio_write(GPIO_7, ON);
+    gpio_write(GPIO_5, ON);
+    gpio_write(GPIO_4, ON);
+    gpio_write(GPIO_10, ON);
+    gpio_write(GPIO_3, OFF);
+    gpio_write(GPIO_9, OFF);
+  } else {
+    ser_write('P');
+    gpio_write(GPIO_8, ON);
+    gpio_write(GPIO_7, OFF);
+    gpio_write(GPIO_5, OFF);
+    gpio_write(GPIO_4, ON);
+    gpio_write(GPIO_10, ON);
+    gpio_write(GPIO_3, ON);
+    gpio_write(GPIO_9, ON);
+
+  }
+  ser_write('\n');
+}
+
 void gear_change_setup(void){
   DDRD &= ~(1 << DDD2); // set gpio pin 2 as input
   PORTD |= (1 << PORTD2); // enable internal pull-up resistor
+}
+
+void gear_display_setup(void){
+  gpio_mode(GPIO_8, GPIO_OUTPUT);
+  gpio_mode(GPIO_7, GPIO_OUTPUT);
+  gpio_mode(GPIO_5, GPIO_OUTPUT);
+  gpio_mode(GPIO_4, GPIO_OUTPUT);
+  gpio_mode(GPIO_10, GPIO_OUTPUT);
+  gpio_mode(GPIO_3, GPIO_OUTPUT);
+  gpio_mode(GPIO_9, GPIO_OUTPUT);
 }
 
 void gear_change(void){
@@ -103,19 +134,13 @@ void gear_change(void){
   bool currently_pressed = !(PIND & (1 << PIND2));
 
   if (currently_pressed && !previous_pressed){
-    if (drive_gear){
-      drive_gear = false;
-      ser_write('P');
-      ser_write('\n');
-    } else {
-      drive_gear = true;
-      ser_write('d');
-      ser_write('\n');
-    }
+    drive_gear = !drive_gear; //switch gears
+    display_gear(drive_gear);
   }
 
   previous_pressed = currently_pressed;
 }
+
 
 
 /******************************************************************************
@@ -128,8 +153,6 @@ void gear_change(void){
  *          I2C is initialized for communication with BMP180
  *          calib_data is filled with calibration data from BMP180
  *******************************************************************************/
-
-
 static void servo (int gpio, int angle)
 {
 
@@ -141,16 +164,10 @@ gpio_write(gpio,OFF);
 delay_ms(off_pulse_width/1000);
 delay_us(off_pulse_width % 1000);
 
-
 return;
 }
 
-
-
-
-
-
- void setup() 
+void setup() 
 {
 uart_init();                 // Initialize UART first
 
@@ -180,8 +197,9 @@ gpio_mode(GPIO_13, GPIO_OUTPUT); //RED
 gpio_mode(GPIO_12, GPIO_OUTPUT); //GREEN
 gpio_mode(GPIO_11, GPIO_OUTPUT); //BLUE
 
-//setup gear change button
+//setup gear change 
 gear_change_setup();
+gear_display_setup();
 
 //Setup GPIO_6 for PWM output
 gpio_mode(GPIO_6, GPIO_OUTPUT);
